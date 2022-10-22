@@ -1,0 +1,7 @@
+-allowaccessmodification
+
+-keep public class app.raw.MainActivity
+
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
