@@ -10,8 +10,11 @@ NDK="$ANDROID_HOME/ndk/25.1.8937393/toolchains/llvm/prebuilt/linux-x86_64"
 rm -rf build
 mkdir -p build/{res,res-java,res-class,class,dex}
 
+# Compiling .xml resources into binary .flat format
 "$BUILD_TOOLS/aapt2" compile res/*/*.xml -o build/res
 
+# Linking .flat resources and manifest into proto-apk
+# Generating R.java as side-effect
 "$BUILD_TOOLS/aapt2" link \
     -o build/raw.unaligned.apk \
     --manifest AndroidManifest.xml \
@@ -20,11 +23,13 @@ mkdir -p build/{res,res-java,res-class,class,dex}
     -v \
     build/res/*.flat
 
+# Compiling R.java into R.class
 javac \
     -classpath "$PLATFORM/android.jar" \
     -d build/res-class \
     build/res-java/app/raw/*.java
 
+# Compiling kotlin code into .class
 kotlinc \
     -classpath "$PLATFORM/android.jar:build/res-class" \
     -no-jdk \
@@ -34,6 +39,7 @@ kotlinc \
     -d build/class \
     kotlin/app/raw/*.kt
 
+# Compiling all the .class and kotlin-stdlib into classes.dex
 java -cp "$BUILD_TOOLS/lib/d8.jar" com.android.tools.r8.R8 \
     --classpath "$PLATFORM/android.jar" \
     --output build/dex \
@@ -45,11 +51,14 @@ java -cp "$BUILD_TOOLS/lib/d8.jar" com.android.tools.r8.R8 \
     build/res-class/app/raw/*.class \
     build/class/app/raw/*.class
 
+# Adding classes.dex to the root of .apk
 zip --junk-paths build/raw.unaligned.apk build/dex/classes.dex
 
 pushd rust
+# Pointing bindgen to NDK to search for jni.h
 export BINDGEN_EXTRA_CLANG_ARGS="--sysroot='$NDK/sysroot'"
 
+# Building native library for every architecture
 SEP=$'\x1f'
 export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/aarch64-linux-android33-clang"
 cargo build --release --target aarch64-linux-android
@@ -64,6 +73,7 @@ export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/x86_64-linux-android33-c
 cargo build --release --target x86_64-linux-android
 popd
 
+# Prepearing directory structure with native libraries for .apk
 mkdir -p build/lib/{arm64-v8a,armeabi-v7a,x86,x86_64}
 cp rust/target/aarch64-linux-android/release/libraw.so build/lib/arm64-v8a/
 cp rust/target/armv7-linux-androideabi/release/libraw.so build/lib/armeabi-v7a/
@@ -71,10 +81,13 @@ cp rust/target/i686-linux-android/release/libraw.so build/lib/x86/
 cp rust/target/x86_64-linux-android/release/libraw.so build/lib/x86_64/
 
 pushd build
+# Adding native libraries for all architectures to .apk
 zip raw.unaligned.apk -r lib
 
+# Aligning .apk (which is at it's core just a .zip file)
 "$BUILD_TOOLS/zipalign" -v -p 4 raw.unaligned.apk raw.unsigned.apk
 
+# Generating key for signing the .apk
 keytool -genkeypair \
     -keystore keystore.jks \
     -alias androidkey \
@@ -84,6 +97,7 @@ keytool -genkeypair \
     -keypass android \
     -dname 'CN=app.raw'
 
+# Signing the .apk
 "$BUILD_TOOLS/apksigner" sign \
     --ks keystore.jks \
     --ks-key-alias androidkey \
@@ -93,4 +107,6 @@ keytool -genkeypair \
     raw.unsigned.apk
 
 set +e
+
+# Trying to install complete .apk to connected device or emulator
 adb install -r raw.apk && adb shell am start -n app.raw/.MainActivity
