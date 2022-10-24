@@ -60,16 +60,16 @@ export BINDGEN_EXTRA_CLANG_ARGS="--sysroot='$NDK/sysroot'"
 
 # Building native library for every architecture
 SEP=$'\x1f'
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/aarch64-linux-android33-clang"
+export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/aarch64-linux-android21-clang"
 cargo build --release --target aarch64-linux-android
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/armv7a-linux-androideabi33-clang"
+export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/armv7a-linux-androideabi21-clang"
 cargo build --release --target armv7-linux-androideabi
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/i686-linux-android33-clang"
+export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/i686-linux-android21-clang"
 cargo build --release --target i686-linux-android
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/x86_64-linux-android33-clang"
+export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/x86_64-linux-android21-clang"
 cargo build --release --target x86_64-linux-android
 popd
 

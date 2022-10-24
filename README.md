@@ -35,15 +35,15 @@ You can use `jni.h` from SDK:
 ```bash
 export BINDGEN_EXTRA_CLANG_ARGS="--sysroot='$NDK/sysroot'"
 ```
-* Build native library four times:
+* Build native library four times (you must use NDK's `clang` matching `minSdkVersion` from manifest):
 ```bash
-RUSTFLAGS="-C linker=$NDK/bin/aarch64-linux-android33-clang" cargo build --release --target aarch64-linux-android
+RUSTFLAGS="-C linker=$NDK/bin/aarch64-linux-android21-clang" cargo build --release --target aarch64-linux-android
 
-RUSTFLAGS="-C linker=$NDK/bin/armv7a-linux-androideabi33-clang" cargo build --release --target armv7-linux-androideabi
+RUSTFLAGS="-C linker=$NDK/bin/armv7a-linux-androideabi21-clang" cargo build --release --target armv7-linux-androideabi
 
-RUSTFLAGS="-C linker=$NDK/bin/i686-linux-android33-clang" cargo build --release --target i686-linux-android
+RUSTFLAGS="-C linker=$NDK/bin/i686-linux-android21-clang" cargo build --release --target i686-linux-android
 
-RUSTFLAGS="-C linker=$NDK/bin/x86_64-linux-android33-clang" cargo build --release --target x86_64-linux-android
+RUSTFLAGS="-C linker=$NDK/bin/x86_64-linux-android21-clang" cargo build --release --target x86_64-linux-android
 ```
 
 ## *Kotlin
