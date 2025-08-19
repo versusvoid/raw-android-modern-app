@@ -3,9 +3,9 @@
 set -ex
 
 ANDROID_HOME=/opt/android-sdk
-BUILD_TOOLS="$ANDROID_HOME/build-tools/33.0.0"
-PLATFORM="$ANDROID_HOME/platforms/android-33"
-NDK="$ANDROID_HOME/ndk/25.1.8937393/toolchains/llvm/prebuilt/linux-x86_64"
+BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.1"
+PLATFORM="$ANDROID_HOME/platforms/android-35"
+NDK="$ANDROID_HOME/ndk/26.1.10909125/toolchains/llvm/prebuilt/linux-x86_64"
 
 rm -rf build
 mkdir -p build/{res,res-java,res-class,class,dex}
@@ -59,18 +59,17 @@ pushd rust
 export BINDGEN_EXTRA_CLANG_ARGS="--sysroot='$NDK/sysroot'"
 
 # Building native library for every architecture
-SEP=$'\x1f'
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/aarch64-linux-android21-clang"
-cargo build --release --target aarch64-linux-android
+cargo build --release --target aarch64-linux-android \
+        --config target.aarch64-linux-android.linker=\"$NDK/bin/aarch64-linux-android21-clang\"
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/armv7a-linux-androideabi21-clang"
-cargo build --release --target armv7-linux-androideabi
+cargo build --release --target armv7-linux-androideabi \
+        --config target.armv7-linux-androideabi.linker=\"$NDK/bin/armv7a-linux-androideabi21-clang\"
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/i686-linux-android21-clang"
-cargo build --release --target i686-linux-android
+cargo build --release --target i686-linux-android \
+        --config target.i686-linux-android.linker=\"$NDK/bin/i686-linux-android21-clang\"
 
-export CARGO_ENCODED_RUSTFLAGS="-C${SEP}linker=$NDK/bin/x86_64-linux-android21-clang"
-cargo build --release --target x86_64-linux-android
+cargo build --release --target x86_64-linux-android \
+        --config target.x86_64-linux-android.linker=\"$NDK/bin/x86_64-linux-android21-clang\"
 popd
 
 # Prepearing directory structure with native libraries for .apk
